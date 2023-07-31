@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 type QueryResponse struct {
@@ -22,10 +23,12 @@ type QueryResponse struct {
 }
 
 func KibanaErrorRate() (errorRate float64, err error) {
-	kibanaEndpoint := "http://kibana.host.net"
-	elasticIndex := "elastic-index-right-here"
+	now := time.Now()
+	thirtyMinutesAgo := now.Add(-30 * time.Minute)
+	startDate := thirtyMinutesAgo.Format(time.RFC3339Nano)
+	endDate := now.Format(time.RFC3339Nano)
 
-	query := `{
+	query := fmt.Sprintf(`{
 		"query": {
 			"bool": {
 				"must": [
@@ -37,17 +40,17 @@ func KibanaErrorRate() (errorRate float64, err error) {
 					{
 						"range": {
 							"@timestamp": {
-								"gte": "2023-07-01T00:00:00.000Z",
-								"lte": "2023-07-28T23:59:59.999Z"
+								"gte": "%s",
+								"lte": "%s"
 							}
 						}
 					}
 				]
 			}
 		}
-	}`
+	}`, startDate, endDate)
 
-	resp, err := http.Post(kibanaEndpoint+"/api/console/proxy?path=/"+elasticIndex+"/_search", "application/json", bytes.NewBuffer([]byte(query)))
+	resp, err := http.Post(GlobalConfig.Kibana.Endpoint+"/api/console/proxy?path=/"+GlobalConfig.Kibana.ElasticIndex+"/_search", "application/json", bytes.NewBuffer([]byte(query)))
 	if err != nil {
 		panic(err)
 	}

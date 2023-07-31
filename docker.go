@@ -9,18 +9,12 @@ import (
 )
 
 func LatestAndPreviousImageTags() (string, string) {
-	// Replace these with your actual values
-	registryURL := "https://registry.k8s.io"
-	repoName := "e2e-test-images/agnhost"
-	username := "" // Leave empty if the repository is public
-	password := "" // Leave empty if the repository is public
-
-	client, err := registry.New(registryURL, username, password)
+	client, err := registry.New(GlobalConfig.Docker.RegistryURL, GlobalConfig.Docker.Username, GlobalConfig.Docker.Password)
 	if err != nil {
 		panic(err)
 	}
 
-	tags, err := client.Tags(repoName)
+	tags, err := client.Tags(GlobalConfig.Docker.RepoName)
 	if err != nil {
 		panic(err)
 	}
@@ -50,9 +44,9 @@ func LatestAndPreviousImageTags() (string, string) {
 		previousTag = validTags[len(validTags)-2]
 	}
 
-	fmt.Printf("Latest valid image tag for repository '%s': %s\n", repoName, latestTag)
+	fmt.Printf("Latest valid image tag for repository '%s': %s\n", GlobalConfig.Docker.RepoName, latestTag)
 	if previousTag != "" {
-		fmt.Printf("Previous valid image tag for repository '%s': %s\n", repoName, previousTag)
+		fmt.Printf("Previous valid image tag for repository '%s': %s\n", GlobalConfig.Docker.RepoName, previousTag)
 	} else {
 		fmt.Println("No previous valid image tag found in the repository.")
 	}

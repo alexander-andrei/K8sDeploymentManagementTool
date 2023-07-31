@@ -1,0 +1,20 @@
+{
+    "kibana": {
+        "endpoint": "http://kibana.host.net",
+        "elasticIndex": "elastic-index-name",
+        "errorRate": 20.5
+    },
+
+    "k8s": {
+        "namespace": "default",
+        "deploymentName": "hello-node",
+        "registryImage": "registry.k8s.io/e2e-test-images/agnhost"
+    },
+
+    "docker": {
+        "registryURL": "https://registry.k8s.io",
+        "repoName": "e2e-test-images/agnhost",
+        "username": "",
+        "password": ""
+    }
+}
