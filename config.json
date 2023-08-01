@@ -6,9 +6,7 @@
     },
 
     "k8s": {
-        "namespace": "default",
-        "deploymentName": "hello-node",
-        "registryImage": "registry.k8s.io/e2e-test-images/agnhost"
+        "namespace": "default"
     },
 
     "docker": {
@@ -16,5 +14,10 @@
         "repoName": "e2e-test-images/agnhost",
         "username": "",
         "password": ""
+    },
+
+    "argoCD": {
+        "location": "http://localhost:8085",
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcmdvY2QiLCJzdWIiOiJhbGljZTphcGlLZXkiLCJuYmYiOjE2OTA4ODk4MzEsImlhdCI6MTY5MDg4OTgzMSwianRpIjoiZGMxZmQ0YTktYTQ3Yi00NzJlLTg1MGItY2U0YTg0NGM1ZjAzIn0.8JV_Erf6iylLgT4DAjUjBiIeyoIgQDrFLJ886YmR1D4"
     }
 }

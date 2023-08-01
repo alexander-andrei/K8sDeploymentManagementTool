@@ -14,5 +14,6 @@ func main() {
 
 	var rootCmd = &cobra.Command{Use: "tool"}
 	rootCmd.AddCommand(cmd.GetK8sCommand())
+	rootCmd.AddCommand(cmd.GetArgoSyncCommand())
 	rootCmd.Execute()
 }

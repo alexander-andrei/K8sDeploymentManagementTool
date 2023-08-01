@@ -9,7 +9,7 @@ import (
 
 var k8sCommand = &cobra.Command{
 	Use:   "k8s-change [imageName] [version]",
-	Short: "A subcommand of the tool command",
+	Short: "Revert latest deployment if kibana errors are too many",
 	Long: `Change checks the kibana error rate for a particular 
 					deployment and reverts the deployment to the previous tag if the error 
 					rate in the last 30 mins is greater than expected`,
