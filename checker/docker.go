@@ -9,20 +9,20 @@ import (
 	"github.com/heroku/docker-registry-client/registry"
 )
 
-func LatestAndPreviousImageTags() (string, string) {
+func LatestAndPreviousImageTags() (string, string, error) {
 	client, err := registry.New(config.GlobalConfig.Docker.RegistryURL, config.GlobalConfig.Docker.Username, config.GlobalConfig.Docker.Password)
 	if err != nil {
-		panic(err)
+		return "", "", err
 	}
 
 	tags, err := client.Tags(config.GlobalConfig.Docker.RepoName)
 	if err != nil {
-		panic(err)
+		return "", "", err
 	}
 
 	if len(tags) == 0 {
 		fmt.Println("No tags found in the repository.")
-		return "", ""
+		return "", "", nil
 	}
 
 	var validTags []string
@@ -35,7 +35,7 @@ func LatestAndPreviousImageTags() (string, string) {
 
 	if len(validTags) == 0 {
 		fmt.Println("No valid tags found in the repository.")
-		return "", ""
+		return "", "", nil
 	}
 
 	sort.Strings(validTags)
@@ -52,5 +52,5 @@ func LatestAndPreviousImageTags() (string, string) {
 		fmt.Println("No previous valid image tag found in the repository.")
 	}
 
-	return latestTag, previousTag
+	return latestTag, previousTag, nil
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"k8s/tool/checker"
 
+	log "github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
@@ -19,10 +20,23 @@ var k8sCommand = &cobra.Command{
 		fmt.Println("Deployment:", args[0])
 		fmt.Println("With image:", args[1])
 
-		latestTag, previousTag := checker.LatestAndPreviousImageTags()
-		errorRate, err := checker.KibanaErrorRate()
+		latestTag, previousTag, err := checker.LatestAndPreviousImageTags()
+		if err != nil {
+			log.Error().Str("Application", args[0]).Str("LatestTag:", latestTag).Str("PreviousTag:", previousTag).Err(err).Msg("An error occured while getting latest and previous tags")
+			panic(err)
+		}
 
-		checker.VerifyAndChangeImage(errorRate, err, latestTag, previousTag, args[0], args[1])
+		errorRate, err := checker.KibanaErrorRate()
+		if err != nil {
+			log.Error().Str("Application", args[0]).Str("LatestTag:", latestTag).Str("PreviousTag:", previousTag).Err(err).Msg("An error occured while checking kibana error rate")
+			panic(err)
+		}
+
+		err = checker.VerifyAndChangeImage(errorRate, err, latestTag, previousTag, args[0], args[1])
+
+		if err != nil {
+			log.Error().Str("Application", args[0]).Str("LatestTag:", latestTag).Str("PreviousTag:", previousTag).Err(err).Msg("An error occured while verifying and changing the image")
+		}
 	},
 }
 

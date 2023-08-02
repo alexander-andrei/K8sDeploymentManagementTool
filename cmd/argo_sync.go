@@ -5,6 +5,7 @@ import (
 	"k8s/tool/argo"
 	"k8s/tool/checker"
 
+	log "github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
@@ -19,15 +20,29 @@ var argoSyncCommand = &cobra.Command{
 		fmt.Println("Command started. For the next 30 mins there will be a check running on:")
 		fmt.Println("Deployment:", args[0])
 
-		latestTag, previousTag := checker.LatestAndPreviousImageTags()
-		errorRate, err := checker.KibanaErrorRate()
-
+		latestTag, previousTag, err := checker.LatestAndPreviousImageTags()
 		if err != nil {
+			log.Error().Str("Application", args[0]).Str("LatestTag:", latestTag).Str("PreviousTag:", previousTag).Err(err).Msg("An error occured while getting latest and previous tags")
 			panic(err)
 		}
 
-		argo.CheckAndRevertTags(latestTag, previousTag, errorRate, args[0])
-		argo.TriggerDeploymentSync(args[0])
+		errorRate, err := checker.KibanaErrorRate()
+		if err != nil {
+			log.Error().Str("Application", args[0]).Str("LatestTag:", latestTag).Str("PreviousTag:", previousTag).Err(err).Msg("An error occured while checking kibana error rate")
+			panic(err)
+		}
+
+		err = argo.CheckAndRevertTags(latestTag, previousTag, errorRate, args[0])
+		if err != nil {
+			log.Error().Str("Application", args[0]).Str("LatestTag:", latestTag).Str("PreviousTag:", previousTag).Err(err).Msg("An error occured while checking and reverting tags")
+			panic(err)
+		}
+
+		err = argo.TriggerDeploymentSync(args[0])
+		if err != nil {
+			log.Error().Str("Application", args[0]).Err(err).Msg("An error occured while triggering deployment sync")
+			panic(err)
+		}
 	},
 }
 
