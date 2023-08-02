@@ -1,10 +1,8 @@
 package main
 
 import (
-	"k8s/tool/cmd"
+	"k8s/tool/argo"
 	"k8s/tool/config"
-
-	"github.com/spf13/cobra"
 )
 
 func main() {
@@ -12,8 +10,10 @@ func main() {
 		panic(err)
 	}
 
-	var rootCmd = &cobra.Command{Use: "tool"}
-	rootCmd.AddCommand(cmd.GetK8sCommand())
-	rootCmd.AddCommand(cmd.GetArgoSyncCommand())
-	rootCmd.Execute()
+	argo.CheckAndRevertTags("2.39", "2", 2.2, "agnhost")
+
+	// var rootCmd = &cobra.Command{Use: "tool"}
+	// rootCmd.AddCommand(cmd.GetK8sCommand())
+	// rootCmd.AddCommand(cmd.GetArgoSyncCommand())
+	// rootCmd.Execute()
 }

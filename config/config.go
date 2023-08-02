@@ -10,6 +10,7 @@ type Config struct {
 	K8s    K8sConfig    `json:"k8s"`
 	Docker DockerConfig `json:"docker"`
 	ArgoCD ArgoCdConfig `json:"argoCD"`
+	GitOps GitOpsConfig `json:"gitops"`
 }
 
 type KibanaConfig struct {
@@ -32,6 +33,10 @@ type DockerConfig struct {
 type ArgoCdConfig struct {
 	Location string `json:"location"`
 	Token    string `json:"token"`
+}
+
+type GitOpsConfig struct {
+	RawRepo string `json:"rawRepo"`
 }
 
 var GlobalConfig Config

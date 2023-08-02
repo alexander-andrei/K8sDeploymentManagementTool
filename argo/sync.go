@@ -6,48 +6,68 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 
 	"k8s/tool/config"
+	"k8s/tool/gitops"
+	"k8s/tool/utils"
 )
 
-func CheckAndRevertTags(latestTag string, previousTag string, errorRate float64) {
-	// check what tag is curently deployed
-	// check what tag is defined in git
-	// if error rate is bigger than it was supposed to be, change tag in git
-	// if all is good exit command
+type Application struct {
+	Status Status `json:"status"`
+}
+
+type Status struct {
+	Summary Summary `json:"summary"`
+}
+
+type Summary struct {
+	Images []string `json:"images"`
+}
+
+func CheckAndRevertTags(latestTag string, previousTag string, errorRate float64, applicationName string) {
+	image := getArgoCdDeploymentInfo(applicationName)
+
+	if utils.ExtractTagVersion(image) != latestTag {
+		os.Exit(3)
+	}
+
+	gitImage := gitops.GetServerConfigurationsFromGit(applicationName)
+
+	if image != gitImage {
+		os.Exit(3)
+	}
+
+	if errorRate > config.GlobalConfig.Kibana.ErrorRate {
+
+	}
 }
 
 func TriggerDeploymentSync(applicationName string) error {
 	apiURL := fmt.Sprintf("%s/api/v1/applications/%s/sync", config.GlobalConfig.ArgoCD.Location, applicationName)
 
-	// Create a JSON payload for the request body
 	payload := map[string]interface{}{
 		"revision": "HEAD",
 	}
 
-	// Convert the payload to JSON
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		return err
 	}
 
-	// Create a new HTTP POST request
 	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		return err
 	}
 
-	// Set the content type header to application/json
 	req.Header.Set("Content-Type", "application/json")
 
-	// Create a custom HTTP transport with InsecureSkipVerify set to true
 	customTransport := &http.Transport{
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
 		},
 	}
 
-	// Create a custom HTTP client with the custom transport
 	client := &http.Client{
 		Transport: customTransport,
 	}
@@ -60,11 +80,46 @@ func TriggerDeploymentSync(applicationName string) error {
 	}
 	defer resp.Body.Close()
 
-	// Check the response status code
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed to trigger deployment sync: %s", resp.Status)
 	}
 
 	fmt.Println("Deployment sync triggered successfully.")
 	return nil
+}
+
+func getArgoCdDeploymentInfo(applicationName string) string {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	client := &http.Client{Transport: tr}
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/applications/%s", config.GlobalConfig.ArgoCD.Location, applicationName), nil)
+	if err != nil {
+		panic(err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+config.GlobalConfig.ArgoCD.Token)
+	req.Header.Set("Content-Type", "application/json")
+
+	// Perform the HTTP request
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		panic(err)
+	}
+
+	var application Application
+
+	if err := json.NewDecoder(resp.Body).Decode(&application); err != nil {
+		panic(err)
+	}
+
+	return application.Status.Summary.Images[0]
 }

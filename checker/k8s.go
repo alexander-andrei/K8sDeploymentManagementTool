@@ -5,9 +5,10 @@ import (
 	"flag"
 	"fmt"
 	jsonConfig "k8s/tool/config"
+	"k8s/tool/utils"
 	"path/filepath"
-	"strings"
 
+	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -19,6 +20,22 @@ func VerifyAndChangeImage(errorRate float64, err error, latestTag string, previo
 		return
 	}
 
+	imageTag, deployment, clientset := getK8sDeoloymentInfo(deploymentName)
+
+	if imageTag == latestTag {
+		newImage := registryImage + ":" + previousTag
+		deployment.Spec.Template.Spec.Containers[0].Image = newImage
+
+		_, updateErr := clientset.AppsV1().Deployments(jsonConfig.GlobalConfig.K8s.Namespace).Update(context.TODO(), deployment, metav1.UpdateOptions{})
+		if updateErr != nil {
+			panic(fmt.Errorf("failed to update Deployment: %w", updateErr))
+		}
+
+		fmt.Printf("Deployment '%s' in namespace '%s' updated. Rolling restart will be triggered.\n", deploymentName, jsonConfig.GlobalConfig.K8s.Namespace)
+	}
+}
+
+func getK8sDeoloymentInfo(deploymentName string) (string, *v1.Deployment, *kubernetes.Clientset) {
 	var kubeconfig *string
 	if home := homedir.HomeDir(); home != "" {
 		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
@@ -42,26 +59,7 @@ func VerifyAndChangeImage(errorRate float64, err error, latestTag string, previo
 		panic(err.Error())
 	}
 
-	imageTag := extractTagVersion(deployment.Spec.Template.Spec.Containers[0].Image)
+	imageTag := utils.ExtractTagVersion(deployment.Spec.Template.Spec.Containers[0].Image)
 
-	if imageTag == latestTag {
-		newImage := registryImage + ":" + previousTag
-		deployment.Spec.Template.Spec.Containers[0].Image = newImage
-
-		_, updateErr := clientset.AppsV1().Deployments(jsonConfig.GlobalConfig.K8s.Namespace).Update(context.TODO(), deployment, metav1.UpdateOptions{})
-		if updateErr != nil {
-			panic(fmt.Errorf("failed to update Deployment: %w", updateErr))
-		}
-
-		fmt.Printf("Deployment '%s' in namespace '%s' updated. Rolling restart will be triggered.\n", deploymentName, jsonConfig.GlobalConfig.K8s.Namespace)
-	}
-}
-
-func extractTagVersion(imageName string) string {
-	imageParts := strings.Split(imageName, ":")
-	if len(imageParts) > 1 {
-		return imageParts[1]
-	}
-
-	return ""
+	return imageTag, deployment, clientset
 }
