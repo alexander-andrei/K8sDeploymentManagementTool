@@ -36,7 +36,11 @@ type ArgoCdConfig struct {
 }
 
 type GitOpsConfig struct {
-	RawRepo string `json:"rawRepo"`
+	RawRepo  string `json:"rawRepo"`
+	Repo     string `json:"repo"`
+	Username string `json:"usernam"`
+	Token    string `json:"token"`
+	TmpDir   string `json:"tmpDir"`
 }
 
 var GlobalConfig Config

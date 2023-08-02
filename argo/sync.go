@@ -39,7 +39,7 @@ func CheckAndRevertTags(latestTag string, previousTag string, errorRate float64,
 	}
 
 	if errorRate > config.GlobalConfig.Kibana.ErrorRate {
-
+		gitops.ChangeAndCommit(applicationName, previousTag, gitImage)
 	}
 }
 

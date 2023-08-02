@@ -22,6 +22,10 @@
     },
 
     "gitops": {
-        "rawRepo": "https://raw.githubusercontent.com/alexander-andrei/argoCdConfigs/main/"
+        "rawRepo": "https://raw.githubusercontent.com/alexander-andrei/argoCdConfigs/main/",
+        "repo": "github.com/alexander-andrei/argoCdConfigs.git",
+        "tmpDir": "repo",
+        "username": "",
+        "token": ""
     }
 }

@@ -26,7 +26,7 @@ var argoSyncCommand = &cobra.Command{
 			panic(err)
 		}
 
-		argo.CheckAndRevertTags(latestTag, previousTag, errorRate)
+		argo.CheckAndRevertTags(latestTag, previousTag, errorRate, args[0])
 		argo.TriggerDeploymentSync(args[0])
 	},
 }
